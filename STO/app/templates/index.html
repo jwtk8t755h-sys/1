@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}СТО+ - Главная{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header text-center">
+        <h1 class="display-4">🚗 СТО+</h1>
+        <p class="lead">Профессиональное обслуживание вашего автомобиля</p>
+    </div>
+
+    <div class="card">
+        <div class="card-body text-center">
+            <h2>Добро пожаловать в систему управления СТО</h2>
+            <p>Используйте панель управления для работы с клиентами и записями</p>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg">Перейти в панель управления</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
