@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Панель управления - СТО+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Панель управления СТО+</h1>
+        <p>Добро пожаловать в систему управления автосервисом</p>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_clients }}</div>
+            <div class="stat-label">Клиентов</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_appointments }}</div>
+            <div class="stat-label">Всего записей</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ today_appointments }}</div>
+            <div class="stat-label">Записей сегодня</div>
+        </div>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Быстрые действия</h2>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{{ url_for('admin.add_client') }}" class="btn btn-primary">Добавить клиента</a>
+                <a href="{{ url_for('admin.add_appointment') }}" class="btn btn-success">Новая запись</a>
+                <a href="{{ url_for('admin.clients_list') }}" class="btn btn-warning">Список клиентов</a>
+                <a href="{{ url_for('admin.appointments_list') }}" class="btn btn-info">Календарь записей</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

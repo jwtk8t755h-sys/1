@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+
+{% block title %}СТО+ в Гродно - профессиональный автосервис{% endblock %}
+
+{% block content %}
+<!-- Герой секция -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Профессиональный автосервис в Гродно</h1>
+            <p>Качественный ремонт и обслуживание автомобилей европейских, азиатских и американских марок</p>
+            <a href="#booking" class="cta-button">Записаться онлайн</a>
+        </div>
+    </div>
+</section>
+
+<!-- Форма записи -->
+<section id="booking" class="section">
+    <div class="container">
+        <div class="booking-form">
+            <div class="section-title">
+                <h2>Онлайн-запись на СТО</h2>
+                <p>Выберите услугу и удобное время для визита</p>
+            </div>
+            
+            <form action="/create_appointment" method="POST" id="appointmentForm">
+                <!-- Личные данные -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Ваше имя *</label>
+                        <input type="text" id="name" name="name" class="form-control" required 
+                               placeholder="Иван Иванов">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Телефон *</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" required 
+                               placeholder="+375 (29) 123-45-67">
+                    </div>
+                </div>
+
+                <!-- Данные автомобиля -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="car_brand">Марка автомобиля *</label>
+                        <select id="car_brand" name="car_brand" class="form-control" required>
+                            <option value="">Выберите марку</option>
+                            {% for brand in car_brands %}
+                                <option value="{{ brand.id }}" data-country="{{ brand.country }}">
+                                    {{ brand.name }}
+                                </option>
+                            {% endfor %}
+                            <option value="other">Другая марка</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="car_model">Модель автомобиля *</label>
+                        <input type="text" id="car_model" name="car_model" class="form-control" required 
+                               placeholder="Camry, X5, Focus и т.д.">
+                    </div>
+                    <div class="form-group">
+                        <label for="car_year">Год выпуска *</label>
+                        <input type="number" id="car_year" name="car_year" class="form-control" required 
+                               min="1990" max="2024" placeholder="2015">
+                    </div>
+                </div>
+                
+                <!-- Услуга и время -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="service">Услуга *</label>
+                        <select id="service" name="service" class="form-control" required>
+                            <option value="">Выберите услугу</option>
+                            {% for service in services %}
+                                <option value="{{ service.id }}" 
+                                        data-price="{{ service.base_price }}"
+                                        data-time="{{ service.standard_time_minutes }}">
+                                    {{ service.name }} - от {{ service.base_price }} руб. ({{ service.standard_time_minutes // 60 }}ч {{ service.standard_time_minutes % 60 }}мин)
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Желаемая дата *</label>
+                        <input type="date" id="date" name="date" class="form-control" required 
+                               min="{{ today }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="time">Удобное время *</label>
+                        <select id="time" name="time" class="form-control" required>
+                            <option value="">Выберите время</option>
+                            <!-- Время будет заполняться динамически -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Описание проблемы</label>
+                    <textarea id="notes" name="notes" class="form-control" rows="4" 
+                              placeholder="Опишите симптомы проблемы или особые пожелания..."></textarea>
+                </div>
+                
+                <!-- Блок с расчетом -->
+                <div class="calculation-card">
+                    <h4>📊 Расчет заказа</h4>
+                    <div class="calculation-grid">
+                        <div class="calc-item">
+                            <span class="calc-label">Ориентировочная стоимость:</span>
+                            <span class="calc-value" id="servicePrice">0 руб.</span>
+                        </div>
+                        <div class="calc-item">
+                            <span class="calc-label">Примерное время работы:</span>
+                            <span class="calc-value" id="serviceTime">0 ч 0 мин</span>
+                        </div>
+                        <div class="calc-item">
+                            <span class="calc-label">Расчетное время окончания:</span>
+                            <span class="calc-value" id="endTime">--:--</span>
+                        </div>
+                    </div>
+                    <div class="calculation-note">
+                        <small>⚠️ Окончательная стоимость может измениться после диагностики</small>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🚗 Записаться на СТО
+                </button>
+                
+                <div class="form-note">
+                    <p>📞 <strong>Или просто позвоните:</strong> +375 (29) 123-45-67</p>
+                    <p>⏰ <strong>График работы:</strong> Пн-Пт 8:30-17:30, Сб 9:00-15:00 (только по записи через администратора)</p>
+                    <p>📍 <strong>Адрес:</strong> г. Гродно, озерское шоссе 16Д</p>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+                
+                <!-- Блок с расчетом стоимости и времени -->
+                <div class="calculation-card">
+                    <h4>📊 Расчет заказа</h4>
+                    <div class="calculation-grid">
+                        <div class="calc-item">
+                            <span class="calc-label">Стоимость услуги:</span>
+                            <span class="calc-value" id="servicePrice">0 руб.</span>
+                        </div>
+                        <div class="calc-item">
+                            <span class="calc-label">Примерное время:</span>
+                            <span class="calc-value" id="serviceTime">0 ч</span>
+                        </div>
+                        <div class="calc-item total">
+                            <span class="calc-label">Ожидаемая стоимость:</span>
+                            <span class="calc-value" id="totalPrice">0 руб.</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🚗 Записаться на СТО
+                </button>
+                
+                <div class="form-note">
+                    <p>📞 <strong>Или просто позвоните:</strong> +375 (29) 123-45-67</p>
+                    <p>⏰ <strong>График работы:</strong> Пн-Пт 8:30-17:30, Сб 9:00-15:00</p>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Услуги -->
+<section id="services" class="section section-light">
+    <div class="container">
+        <div class="section-title">
+            <h2>Наши услуги</h2>
+            <p>Полный спектр услуг по ремонту и обслуживанию автомобилей</p>
+        </div>
+        
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">🔍</div>
+                <h3>Компьютерная диагностика</h3>
+                <p>Полная диагностика электронных систем автомобиля</p>
+                <div class="service-price">от 1500 руб.</div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">⚙️</div>
+                <h3>Техническое обслуживание</h3>
+                <p>Регулярное ТО, замена масла и фильтров</p>
+                <div class="service-price">от 2000 руб.</div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">🚗</div>
+                <h3>Ремонт двигателя</h3>
+                <p>Капитальный и текущий ремонт двигателей</p>
+                <div class="service-price">от 5000 руб.</div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">🛑</div>
+                <h3>Тормозная система</h3>
+                <p>Диагностика и ремонт тормозной системы</p>
+                <div class="service-price">от 3000 руб.</div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">🔧</div>
+                <h3>Электрика</h3>
+                <p>Ремонт электрооборудования и проводки</p>
+                <div class="service-price">от 2500 руб.</div>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">🛞</div>
+                <h3>Ходовая часть</h3>
+                <p>Диагностика и ремонт подвески</p>
+                <div class="service-price">от 3500 руб.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Преимущества -->
+<section id="advantages" class="section">
+    <div class="container">
+        <div class="section-title">
+            <h2>Почему выбирают нас</h2>
+            <p>Наши преимущества для вашего комфорта</p>
+        </div>
+        
+        <div class="advantages-grid">
+            <div class="advantage-card">
+                <div class="advantage-icon">⏱️</div>
+                <h3>Быстро</h3>
+                <p>Диагностика за 30 минут, большинство ремонтов в день обращения</p>
+            </div>
+            
+            <div class="advantage-card">
+                <div class="advantage-icon">💎</div>
+                <h3>Качественно</h3>
+                <p>Опытные мастера с сертификатами, современное оборудование</p>
+            </div>
+            
+            <div class="advantage-card">
+                <div class="advantage-icon">💰</div>
+                <h3>Доступно</h3>
+                <p>Честные цены, прозрачная смета, гарантия на работы</p>
+            </div>
+            
+            <div class="advantage-card">
+                <div class="advantage-icon">🔄</div>
+                <h3>Удобно</h3>
+                <p>Онлайн-запись, уведомления, безналичный расчет</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Контакты -->
+<section id="contacts" class="section section-light">
+    <div class="container">
+        <div class="section-title">
+            <h2>Контакты</h2>
+            <p>Приезжайте к нам в удобное время</p>
+        </div>
+        
+        <div class="services-grid">
+            <div class="service-card">
+                <h3>📍 Адрес</h3>
+                <p>г. Гродно, озерское шоссе 16Д</p>
+                <p>Вход со стороны парковки</p>
+            </div>
+            
+            <div class="service-card">
+                <h3>📞 Телефоны</h3>
+                <p>+375 (29) 123-45-67</p>
+                <p>+375 (29) 765-43-21</p>
+            </div>
+            
+            <div class="service-card">
+                <h3>⏰ График работы</h3>
+                <p>Понедельник - Пятница: 8:30 - 17:30</p>
+                <p>Суббота: 9:00 - 15:00</p>
+                <p>Воскресенье: выходной</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('appointmentForm');
+    const serviceSelect = document.getElementById('service');
+    const dateInput = document.getElementById('date');
+    const timeSelect = document.getElementById('time');
+    const servicePriceEl = document.getElementById('servicePrice');
+    const serviceTimeEl = document.getElementById('serviceTime');
+    const endTimeEl = document.getElementById('endTime');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Рабочее время
+    const WORK_HOURS = {
+        weekdays: ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', 
+                  '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'],
+        saturday: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00']
+    };
+
+    // Обновление расчета при выборе услуги
+    serviceSelect.addEventListener('change', updateCalculation);
+    dateInput.addEventListener('change', updateAvailableTimes);
+    
+    // Инициализация даты (минимум сегодня)
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+    
+    // Функция обновления расчета
+    function updateCalculation() {
+        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+        const price = selectedOption.getAttribute('data-price') || 0;
+        const timeMinutes = parseInt(selectedOption.getAttribute('data-time')) || 0;
+        
+        const hours = Math.floor(timeMinutes / 60);
+        const minutes = timeMinutes % 60;
+        
+        servicePriceEl.textContent = price + ' руб.';
+        serviceTimeEl.textContent = hours + ' ч ' + minutes + ' мин';
+        
+        // Обновляем время окончания если выбрано время начала
+        if (timeSelect.value) {
+            updateEndTime(timeSelect.value, timeMinutes);
+        }
+        
+        // Активируем кнопку если услуга выбрана
+        submitBtn.disabled = !price;
+        updateAvailableTimes();
+    }
+    
+    // Функция обновления доступного времени
+    function updateAvailableTimes() {
+        const selectedDate = new Date(dateInput.value);
+        const dayOfWeek = selectedDate.getDay(); // 0 - воскресенье, 6 - суббота
+        
+        // Очищаем select
+        timeSelect.innerHTML = '<option value="">Выберите время</option>';
+        
+        // Определяем рабочие часы в зависимости от дня недели
+        let workHours = [];
+        if (dayOfWeek === 6) { // Суббота
+            workHours = WORK_HOURS.saturday;
+        } else if (dayOfWeek === 0) { // Воскресенье
+            // Воскресенье - выходной
+            timeSelect.innerHTML = '<option value="">Воскресенье - выходной</option>';
+            timeSelect.disabled = true;
+            return;
+        } else { // Будни
+            workHours = WORK_HOURS.weekdays;
+        }
+        
+        timeSelect.disabled = false;
+        
+        // Добавляем доступное время
+        workHours.forEach(time => {
+            const option = document.createElement('option');
+            option.value = time;
+            option.textContent = time;
+            timeSelect.appendChild(option);
+        });
+        
+        // Добавляем обработчик для времени
+        timeSelect.addEventListener('change', function() {
+            if (serviceSelect.value) {
+                const timeMinutes = parseInt(serviceSelect.options[serviceSelect.selectedIndex].getAttribute('data-time')) || 0;
+                updateEndTime(this.value, timeMinutes);
+            }
+        });
+    }
+    
+    // Функция расчета времени окончания
+    function updateEndTime(startTime, durationMinutes) {
+        if (!startTime) return;
+        
+        const [hours, minutes] = startTime.split(':').map(Number);
+        const startDate = new Date();
+        startDate.setHours(hours, minutes, 0, 0);
+        
+        const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+        const endTime = endDate.getHours().toString().padStart(2, '0') + ':' + 
+                       endDate.getMinutes().toString().padStart(2, '0');
+        
+        endTimeEl.textContent = endTime;
+    }
+    
+    // Валидация телефона
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.startsWith('375')) {
+            value = '+' + value;
+        }
+        if (value.length > 4) {
+            value = value.replace(/(\+\d{3})(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 ($2) $3-$4-$5');
+        }
+        e.target.value = value;
+    });
+    
+    // Блокировка прошедших дат и выходных
+    dateInput.addEventListener('change', function() {
+        const selectedDate = new Date(this.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            alert('Нельзя выбрать прошедшую дату');
+            this.value = '';
+            return;
+        }
+        
+        const dayOfWeek = selectedDate.getDay();
+        if (dayOfWeek === 0) { // Воскресенье
+            alert('Воскресенье - выходной день. Выберите другую дату.');
+            this.value = '';
+        }
+    });
+    
+    // Плавная прокрутка к форме
+    const ctaButton = document.querySelector('.cta-button');
+    if (ctaButton) {
+        ctaButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('booking').scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    }
+    
+    // Инициализация
+    updateAvailableTimes();
+});
+</script>
+{% endblock %}
