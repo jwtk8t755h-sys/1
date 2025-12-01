@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финансы - Админка</title>
+    <!-- ПОДКЛЮЧАЕМ Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f7fa; color: #333; }
+        .header { background: white; padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { color: #667eea; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px; }
+        .container { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        .section { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .section h2 { margin-bottom: 20px; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none; font-weight: 500; padding: 8px 15px; border: 1px solid #667eea; border-radius: 5px; transition: all 0.3s ease; }
+        .back-link:hover { background: #667eea; color: white; }
+        
+        /* СТАТИСТИКА */
+        .financial-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); text-align: center; border-left: 6px solid; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+        .income { border-left-color: #28a745; background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%); }
+        .expenses { border-left-color: #dc3545; background: linear-gradient(135deg, #ffffff 0%, #fff5f5 100%); }
+        .balance { border-left-color: #667eea; background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%); }
+        .stat-card h3 { font-size: 1.1em; margin-bottom: 15px; color: #555; font-weight: 600; }
+        .stat-number { font-size: 2.2em; font-weight: bold; margin: 10px 0; }
+        .income .stat-number { color: #28a745; }
+        .expenses .stat-number { color: #dc3545; }
+        .balance .stat-number { color: #667eea; }
+        .stat-trend { font-size: 0.9em; padding: 4px 10px; border-radius: 15px; display: inline-block; margin-top: 5px; }
+        .trend-positive { background: #d4edda; color: #155724; }
+        .trend-negative { background: #f8d7da; color: #721c24; }
+        
+        /* ГРАФИКИ */
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .chart-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); height: 300px; position: relative; }
+        .chart-title { font-size: 1.2em; font-weight: 600; margin-bottom: 15px; color: #333; text-align: center; }
+        .chart-wrapper { position: relative; height: calc(100% - 40px); width: 100%; }
+        
+        /* ВКЛАДКИ */
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #e9ecef; }
+        .tab { padding: 12px 25px; background: none; border: none; cursor: pointer; font-size: 16px; font-weight: 500; color: #6c757d; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
+        .tab.active { color: #667eea; border-bottom-color: #667eea; }
+        .tab:hover { color: #667eea; background: #f8f9fa; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ФОРМА ДОБАВЛЕНИЯ */
+        .add-form {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .add-form h2 {
+            margin-bottom: 25px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-success { 
+            background: #28a745; 
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-danger { 
+            background: #dc3545; 
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
+        }
+        
+        /* ТАБЛИЦА */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .table th, .table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e1e1;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            color: #555;
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        .table tbody tr:hover {
+            background: #f8f9fa;
+            transform: translateX(3px);
+        }
+        
+        .financial-type-income { 
+            color: #28a745; 
+            font-weight: 600;
+        }
+        
+        .financial-type-expense { 
+            color: #dc3545; 
+            font-weight: 600;
+        }
+        
+        .type-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .badge-income { 
+            background: #d4edda; 
+            color: #155724; 
+        }
+        
+        .badge-expense { 
+            background: #f8d7da; 
+            color: #721c24; 
+        }
+        
+        .category-badge {
+            padding: 3px 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            font-size: 0.75em;
+            color: #495057;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .flash-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .financial-stats {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .analytics-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .chart-container {
+                height: 250px;
+                padding: 15px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .table {
+                font-size: 12px;
+            }
+            
+            .table th, .table td {
+                padding: 8px 10px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1;
+                min-width: 120px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 Финансы</h1>
+        <div class="user-info">
+            <span>Привет, {{ session.get('admin_username', 'Админ') }}!</span>
+            <a href="{{ url_for('admin_logout') }}" class="logout-btn">Выйти</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <a href="{{ url_for('admin_index') }}" class="back-link">← Назад к дашборду</a>
+            <a href="{{ url_for('admin_leads') }}" class="back-link">📋 К заявкам</a>
+            <a href="{{ url_for('admin_map') }}" class="back-link">🗺️ К карте</a>
+        </div>
+        
+        <!-- СТАТИСТИКА -->
+        <div class="financial-stats">
+            <div class="stat-card income">
+                <h3>📈 Общий доход</h3>
+                <div class="stat-number">{{ "%.2f"|format(total_income) }} ₽</div>
+                <div class="stat-trend trend-positive">+{{ "%.1f"|format((total_income/(total_income+total_expenses)*100) if (total_income+total_expenses) > 0 else 0) }}% от оборота</div>
+            </div>
+            <div class="stat-card expenses">
+                <h3>📉 Общие расходы</h3>
+                <div class="stat-number">{{ "%.2f"|format(total_expenses) }} ₽</div>
+                <div class="stat-trend trend-negative">-{{ "%.1f"|format((total_expenses/(total_income+total_expenses)*100) if (total_income+total_expenses) > 0 else 0) }}% от оборота</div>
+            </div>
+            <div class="stat-card balance">
+                <h3>⚖️ Баланс</h3>
+                <div class="stat-number">{{ "%.2f"|format(balance) }} ₽</div>
+                <div class="stat-trend {{ 'trend-positive' if balance >= 0 else 'trend-negative' }}">
+                    {{ '✅ Прибыль' if balance >= 0 else '❌ Убыток' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- ГРАФИКИ И АНАЛИТИКА -->
+        <div class="section">
+            <h2>📊 Аналитика и графики</h2>
+            
+            <!-- Вкладки -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('income-analytics')">💰 Доходы</button>
+                <button class="tab" onclick="switchTab('expense-analytics')">💸 Расходы</button>
+                <button class="tab" onclick="switchTab('trends-analytics')">📈 Тренды</button>
+                <button class="tab" onclick="switchTab('comparison-analytics')">⚖️ Сравнение</button>
+            </div>
+            
+            <!-- Контент вкладок -->
+            <div class="tab-content active" id="income-analytics">
+                <div class="analytics-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">📊 Распределение доходов по категориям</div>
+                        <div class="chart-wrapper">
+                            <canvas id="incomeByCategoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">📈 Динамика доходов по месяцам</div>
+                        <div class="chart-wrapper">
+                            <canvas id="incomeTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="expense-analytics">
+                <div class="analytics-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">📊 Распределение расходов по категориям</div>
+                        <div class="chart-wrapper">
+                            <canvas id="expenseByCategoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">📉 Динамика расходов по месяцам</div>
+                        <div class="chart-wrapper">
+                            <canvas id="expenseTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="trends-analytics">
+                <div class="analytics-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">📈 Общая финансовая динамика</div>
+                        <div class="chart-wrapper">
+                            <canvas id="financialTrendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">🎯 Прибыльность по месяцам</div>
+                        <div class="chart-wrapper">
+                            <canvas id="profitabilityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="comparison-analytics">
+                <div class="analytics-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">⚖️ Доходы vs Расходы</div>
+                        <div class="chart-wrapper">
+                            <canvas id="incomeVsExpenseChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">📊 Структура финансов</div>
+                        <div class="chart-wrapper">
+                            <canvas id="financialStructureChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ФОРМА ДОБАВЛЕНИЯ ОПЕРАЦИИ -->
+        <div class="add-form">
+            <h2>💸 Добавить финансовую операцию</h2>
+            <form action="{{ url_for('add_financial') }}" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type">📊 Тип операции:</label>
+                        <select id="type" name="type" required>
+                            <option value="доход">✅ Доход</option>
+                            <option value="расход">❌ Расход</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="amount">💰 Сумма (₽):</label>
+                        <input type="number" step="0.01" min="0.01" id="amount" name="amount" 
+                               placeholder="0.00" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">📂 Категория:</label>
+                        <select id="category" name="category" required>
+                            <option value="выполненные работы">✅ Выполненные работы</option>
+                            <option value="материалы">🛠️ Материалы</option>
+                            <option value="транспорт">🚗 Транспорт</option>
+                            <option value="зарплата">👷 Зарплата</option>
+                            <option value="оборудование">🔧 Оборудование</option>
+                            <option value="аренда">🏢 Аренда</option>
+                            <option value="реклама">📢 Реклама</option>
+                            <option value="налоги">🏛️ Налоги</option>
+                            <option value="прочее">📦 Прочее</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">📝 Описание операции:</label>
+                    <input type="text" id="description" name="description" 
+                           placeholder="Опишите операцию..." required>
+                </div>
+                
+                <button type="submit" class="btn btn-success">💾 Добавить операцию</button>
+            </form>
+        </div>
+        
+        <!-- ИСТОРИЯ ОПЕРАЦИЙ -->
+        <div class="section">
+            <h2>📋 История операций ({{ finances|length }})</h2>
+            
+            <!-- СООБЩЕНИЯ -->
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash-message {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+            
+            {% if finances %}
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Тип</th>
+                            <th>Сумма</th>
+                            <th>Категория</th>
+                            <th>Описание</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for financial in finances %}
+                        <tr>
+                            <td>{{ financial.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                            <td>
+                                <span class="type-badge {{ 'badge-income' if financial.type == 'доход' else 'badge-expense' }}">
+                                    {% if financial.type == 'доход' %}✅ Доход{% else %}❌ Расход{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="financial-type-{{ financial.type }}">
+                                    <strong>{{ "%.2f"|format(financial.amount) }} ₽</strong>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="category-badge">{{ financial.category }}</span>
+                            </td>
+                            <td title="{{ financial.description }}">
+                                {{ financial.description[:50] }}{% if financial.description|length > 50 %}...{% endif %}
+                                {% if financial.lead_id %}
+                                <br><small style="color: #667eea;">📎 Связана с заявкой #{{ financial.lead_id }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <form action="{{ url_for('delete_financial', finance_id=financial.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn btn-danger" 
+                                                onclick="return confirm('Удалить операцию \"{{ financial.description }}\" на {{ financial.amount }} ₽?')" 
+                                                title="Удалить операцию">
+                                            🗑️
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div>📭</div>
+                <h3>Нет операций</h3>
+                <p>Добавьте первую финансовую операцию с помощью формы выше</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // РЕАЛЬНЫЕ ДАННЫЕ ИЗ FLASK
+        const realFinancialData = {
+            incomeByCategory: {{ income_by_category|tojson }},
+            expenseByCategory: {{ expense_by_category|tojson }},
+            monthlyTrends: {{ monthly_data|tojson }}
+        };
+
+        // ПРЕОБРАЗОВАНИЕ ДАННЫХ ДЛЯ ГРАФИКОВ
+        function prepareChartData() {
+            // Доходы по категориям
+            const incomeLabels = Object.keys(realFinancialData.incomeByCategory);
+            const incomeData = Object.values(realFinancialData.incomeByCategory);
+            
+            // Расходы по категориям  
+            const expenseLabels = Object.keys(realFinancialData.expenseByCategory);
+            const expenseData = Object.values(realFinancialData.expenseByCategory);
+            
+            // Если данных нет, используем демо-данные
+            if (incomeLabels.length === 0) {
+                return {
+                    incomeByCategory: {
+                        labels: ['Выполненные работы', 'Доп. услуги', 'Авансы', 'Прочее'],
+                        data: [120000, 25000, 50000, 15000]
+                    },
+                    expenseByCategory: {
+                        labels: ['Материалы', 'Транспорт', 'Зарплата', 'Оборудование', 'Реклама', 'Налоги', 'Прочее'],
+                        data: [45000, 15000, 30000, 20000, 8000, 12000, 5000]
+                    },
+                    monthlyTrends: realFinancialData.monthlyTrends
+                };
+            }
+            
+            return {
+                incomeByCategory: {
+                    labels: incomeLabels,
+                    data: incomeData
+                },
+                expenseByCategory: {
+                    labels: expenseLabels,
+                    data: expenseData
+                },
+                monthlyTrends: realFinancialData.monthlyTrends
+            };
+        }
+
+        // ИНИЦИАЛИЗАЦИЯ ГРАФИКОВ
+        function initializeCharts() {
+            const chartData = prepareChartData();
+            
+            // ЦВЕТА ДЛЯ ГРАФИКОВ
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7', '#ffecd2', '#fcb69f'];
+
+            // 1. Круговая диаграмма доходов
+            new Chart(document.getElementById('incomeByCategoryChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.incomeByCategory.labels,
+                    datasets: [{
+                        data: chartData.incomeByCategory.data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value.toLocaleString()} ₽ (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Круговая диаграмма расходов
+            new Chart(document.getElementById('expenseByCategoryChart'), {
+                type: 'pie',
+                data: {
+                    labels: chartData.expenseByCategory.labels,
+                    datasets: [{
+                        data: chartData.expenseByCategory.data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value.toLocaleString()} ₽ (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Динамика доходов по месяцам
+            new Chart(document.getElementById('incomeTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: chartData.monthlyTrends.months,
+                    datasets: [{
+                        label: 'Доходы',
+                        data: chartData.monthlyTrends.income,
+                        borderColor: '#28a745',
+                        backgroundColor: '#28a74520',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' ₽';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 4. Динамика расходов по месяцам
+            new Chart(document.getElementById('expenseTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: chartData.monthlyTrends.months,
+                    datasets: [{
+                        label: 'Расходы',
+                        data: chartData.monthlyTrends.expenses,
+                        borderColor: '#dc3545',
+                        backgroundColor: '#dc354520',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' ₽';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 5. Общая финансовая динамика
+            new Chart(document.getElementById('financialTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: chartData.monthlyTrends.months,
+                    datasets: [
+                        {
+                            label: 'Доходы',
+                            data: chartData.monthlyTrends.income,
+                            borderColor: '#28a745',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Расходы',
+                            data: chartData.monthlyTrends.expenses,
+                            borderColor: '#dc3545',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Прибыль',
+                            data: chartData.monthlyTrends.profit,
+                            borderColor: '#667eea',
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' ₽';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 6. Прибыльность по месяцам
+            new Chart(document.getElementById('profitabilityChart'), {
+                type: 'bar',
+                data: {
+                    labels: chartData.monthlyTrends.months,
+                    datasets: [{
+                        label: 'Прибыль',
+                        data: chartData.monthlyTrends.profit,
+                        backgroundColor: chartData.monthlyTrends.profit.map(profit => 
+                            profit >= 0 ? '#28a745' : '#dc3545'
+                        ),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' ₽';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 7. Доходы vs Расходы
+            new Chart(document.getElementById('incomeVsExpenseChart'), {
+                type: 'bar',
+                data: {
+                    labels: chartData.monthlyTrends.months,
+                    datasets: [
+                        {
+                            label: 'Доходы',
+                            data: chartData.monthlyTrends.income,
+                            backgroundColor: '#28a745',
+                            borderWidth: 0
+                        },
+                        {
+                            label: 'Расходы',
+                            data: chartData.monthlyTrends.expenses,
+                            backgroundColor: '#dc3545',
+                            borderWidth: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' ₽';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 8. Структура финансов
+            new Chart(document.getElementById('financialStructureChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Общие доходы', 'Общие расходы', 'Чистая прибыль'],
+                    datasets: [{
+                        data: [
+                            chartData.monthlyTrends.income.reduce((a, b) => a + b, 0),
+                            chartData.monthlyTrends.expenses.reduce((a, b) => a + b, 0),
+                            chartData.monthlyTrends.profit.reduce((a, b) => a + b, 0)
+                        ],
+                        backgroundColor: ['#28a745', '#dc3545', '#667eea'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    return `${label}: ${value.toLocaleString()} ₽`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // АВТОМАТИЧЕСКОЕ ОБНОВЛЕНИЕ СТАТИСТИКИ ПРИ ИЗМЕНЕНИИ ФОРМЫ
+        document.getElementById('type').addEventListener('change', function() {
+            updateFormStyle();
+        });
+        
+        function updateFormStyle() {
+            const type = document.getElementById('type').value;
+            const form = document.querySelector('.add-form');
+            
+            if (type === 'доход') {
+                form.style.borderLeft = '4px solid #28a745';
+            } else {
+                form.style.borderLeft = '4px solid #dc3545';
+            }
+        }
+
+        // ЗАПУСК ПРИ ЗАГРУЗКЕ
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFormStyle();
+            initializeCharts();
+            
+            // АВТОФОКУС НА ПЕРВОМ ПОЛЕ
+            document.getElementById('type').focus();
+        });
+    </script>
+</body>
+</html>

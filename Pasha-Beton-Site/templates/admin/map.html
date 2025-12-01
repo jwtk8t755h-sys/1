@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта заявок - Админка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #667eea;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .map-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            height: 600px;
+        }
+        
+        #map {
+            background: #e9ecef;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .leads-sidebar {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .lead-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        
+        .lead-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        
+        .lead-item.active {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+        }
+        
+        /* ЯРКИЕ ЦВЕТА ДЛЯ ЗАЯВОК В САЙДБАРЕ КАРТЫ */
+        .lead-item.status-новая {
+            border-left: 6px solid #ffc107;
+            background: linear-gradient(90deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 255, 255, 0) 30%);
+            box-shadow: 0 2px 5px rgba(255, 193, 7, 0.1);
+        }
+        
+        .lead-item.status-в-работе {
+            border-left: 6px solid #dc3545;
+            background: linear-gradient(90deg, rgba(220, 53, 69, 0.15) 0%, rgba(255, 255, 255, 0) 30%);
+            box-shadow: 0 2px 5px rgba(220, 53, 69, 0.1);
+        }
+        
+        .lead-item.status-выполнена {
+            border-left: 6px solid #28a745;
+            background: linear-gradient(90deg, rgba(40, 167, 69, 0.15) 0%, rgba(255, 255, 255, 0) 30%);
+            box-shadow: 0 2px 5px rgba(40, 167, 69, 0.1);
+        }
+        
+        .lead-address {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .no-address {
+            color: #999;
+            font-style: italic;
+        }
+        
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: bold;
+            margin-left: 8px;
+            display: inline-block;
+        }
+        
+        .status-new { 
+            background: #ffc107; 
+            color: black; 
+        }
+        .status-in-progress { 
+            background: #dc3545; 
+            color: white; 
+        }
+        .status-completed { 
+            background: #28a745; 
+            color: white; 
+        }
+        
+        .delete-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .delete-btn:hover {
+            background: #dc3545;
+            transform: scale(1.05);
+        }
+
+        .edit-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            margin-right: 5px;
+        }
+        
+        .edit-btn:hover {
+            background: #138496;
+            transform: scale(1.05);
+        }
+        
+        .filters {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        select, button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .lead-info {
+            margin-top: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.85em;
+        }
+        
+        .lead-phone {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .lead-cost {
+            color: #28a745;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .lead-photos {
+            margin-top: 5px;
+            color: #17a2b8;
+        }
+        
+        .balloon-content {
+            min-width: 280px;
+            padding: 10px;
+        }
+        
+        .balloon-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        
+        .balloon-info {
+            margin: 8px 0;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .balloon-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .balloon-cost {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 8px 0;
+        }
+
+        .balloon-photos {
+            margin: 8px 0;
+        }
+
+        .balloon-photo-link {
+            display: inline-block;
+            margin-right: 10px;
+            color: #17a2b8;
+            text-decoration: none;
+        }
+
+        .balloon-photo-link:hover {
+            text-decoration: underline;
+        }
+        
+        .balloon-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .balloon-edit-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .balloon-edit-btn:hover {
+            background: #138496;
+        }
+        
+        .balloon-delete-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .balloon-delete-btn:hover {
+            background: #dc3545;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ Карта заявок - Гродно</h1>
+        <div class="user-info">
+            <span>Привет, {{ session.get('admin_username', 'Админ') }}!</span>
+            <a href="{{ url_for('admin_index') }}" class="logout-btn">Назад в админку</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <a href="{{ url_for('admin_leads') }}" class="back-link">← К списку заявок</a>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label>Фильтр по статусу:</label>
+                <select id="status-filter">
+                    <option value="all">Все заявки</option>
+                    <option value="new_and_in_progress" selected>Новые и в работе</option>
+                    <option value="новая">Новые</option>
+                    <option value="в работе">В работе</option>
+                    <option value="выполнена">Выполненные</option>
+                </select>
+                <button class="refresh-btn" onclick="refreshMap()">🔄 Обновить</button>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+            
+            <div class="leads-sidebar">
+                <h3>Заявки в Гродно и области</h3>
+                <div id="leads-list">
+                    {% for lead in leads %}
+                    <div class="lead-item status-{{ lead.status.replace(' ', '-') }}" data-lead-id="{{ lead.id }}" data-status="{{ lead.status }}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <strong>{{ lead.name }}</strong> 
+                                <span class="status-badge status-{{ lead.status.replace(' ', '-') }}">
+                                    {{ lead.status }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="lead-info">
+                            <div class="lead-phone">📞 {{ lead.phone }}</div>
+                            <div class="lead-address">
+                                {% if lead.address %}
+                                    📍 {{ lead.address }}
+                                {% else %}
+                                    <span class="no-address">Адрес не указан</span>
+                                {% endif %}
+                            </div>
+                            {% if lead.cost %}
+                            <div class="lead-cost">💰 {{ "%.2f"|format(lead.cost) }} ₽</div>
+                            {% endif %}
+                            {% if lead.photo_before or lead.photo_after %}
+                            <div class="lead-photos">
+                                📷 
+                                {% if lead.photo_before %}До{% endif %}
+                                {% if lead.photo_before and lead.photo_after %}/{% endif %}
+                                {% if lead.photo_after %}После{% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <a href="{{ url_for('edit_lead', lead_id=lead.id) }}" class="edit-btn">
+                                ✏️ Редактировать
+                            </a>
+                            <form action="{{ url_for('delete_lead', lead_id=lead.id) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="delete-btn" onclick="return confirm('Удалить заявку от {{ lead.name }}?')">
+                                    🗑️ Удалить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем Яндекс Карты -->
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=b5dd9095-5f7b-44b5-995b-39de6b3ba337" type="text/javascript"></script>
+    
+    <script type="text/javascript">
+        let map;
+        let placemarks = [];
+        let leadsData = [];
+        
+        ymaps.ready(init);
+        
+        function init() {
+            // Создаем карту с центром в Гродно
+            map = new ymaps.Map('map', {
+                center: [53.6694, 23.8131], // Координаты Гродно
+                zoom: 12
+            });
+            
+            // Инициализируем данные заявок (ВСЕ заявки, включая выполненные)
+            leadsData = [
+                {% for lead in leads %}
+                {
+                    id: {{ lead.id }},
+                    name: "{{ lead.name | e }}",
+                    phone: "{{ lead.phone | e }}",
+                    address: "{{ lead.address | e if lead.address else 'Адрес не указан' }}",
+                    status: "{{ lead.status | e }}",
+                    cost: {{ lead.cost or 'null' }},
+                    work_description: `{{ lead.work_description | e if lead.work_description else '' }}`,
+                    photo_before: `{{ lead.photo_before | e if lead.photo_before else '' }}`,
+                    photo_after: `{{ lead.photo_after | e if lead.photo_after else '' }}`
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+            
+            loadLeadsToMap();
+        }
+        
+        function loadLeadsToMap() {
+            // Очищаем старые метки
+            placemarks.forEach(pm => map.geoObjects.remove(pm));
+            placemarks = [];
+            
+            const statusFilter = document.getElementById('status-filter').value;
+            
+            leadsData.forEach(lead => {
+                // Применяем фильтр по статусу
+                if (statusFilter === 'new_and_in_progress') {
+                    if (lead.status !== 'новая' && lead.status !== 'в работе') {
+                        return;
+                    }
+                } else if (statusFilter !== 'all' && lead.status !== statusFilter) {
+                    return;
+                }
+                
+                // Геокодируем адрес с ограничением по Гродно
+                geocodeGrodnoAddress(lead.address, (coords) => {
+                    const color = getStatusColor(lead.status);
+                    
+                    // Формируем содержимое балуна
+                    let balloonContent = `
+                        <div class="balloon-content">
+                            <div class="balloon-title">${lead.name}</div>
+                            <div class="balloon-info"><strong>Телефон:</strong> ${lead.phone}</div>
+                            <div class="balloon-info"><strong>Адрес:</strong> ${lead.address}</div>
+                            <div class="balloon-info">
+                                <strong>Статус:</strong> 
+                                <span class="balloon-status" style="background: ${color}; color: ${color === '#ffc107' ? 'black' : 'white'}">
+                                    ${lead.status}
+                                </span>
+                            </div>`;
+                    
+                    // Добавляем информацию о стоимости для выполненых работ
+                    if (lead.status === 'выполнена' && lead.cost) {
+                        balloonContent += `
+                            <div class="balloon-cost">
+                                <strong>Стоимость работы:</strong> ${lead.cost} ₽
+                            </div>`;
+                    }
+                    
+                    // Добавляем описание работы
+                    if (lead.work_description) {
+                        balloonContent += `
+                            <div class="balloon-info">
+                                <strong>Описание работы:</strong><br>
+                                ${lead.work_description}
+                            </div>`;
+                    }
+                    
+                    // Добавляем информацию о фото
+                    if (lead.photo_before || lead.photo_after) {
+                        balloonContent += `
+                            <div class="balloon-photos">
+                                <strong>Фото работы:</strong><br>`;
+                        
+                        if (lead.photo_before) {
+                            balloonContent += `
+                                <a href="${lead.photo_before}" target="_blank" class="balloon-photo-link">
+                                    📷 До
+                                </a>`;
+                        }
+                        
+                        if (lead.photo_after) {
+                            balloonContent += `
+                                <a href="${lead.photo_after}" target="_blank" class="balloon-photo-link">
+                                    📷 После
+                                </a>`;
+                        }
+                        
+                        balloonContent += `</div>`;
+                    }
+                    
+                    // Добавляем кнопки действий
+                    balloonContent += `
+                            <div class="balloon-actions">
+                                <a href="/admin/lead/${lead.id}/edit" class="balloon-edit-btn">
+                                    ✏️ Редактировать
+                                </a>
+                                <form action="/admin/lead/${lead.id}/delete" method="POST">
+                                    <button type="submit" class="balloon-delete-btn" onclick="return confirm('Удалить заявку от ${lead.name}?')">
+                                        🗑️ Удалить
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const placemark = new ymaps.Placemark(coords, {
+                        balloonContent: balloonContent,
+                        hintContent: `${lead.name} - ${lead.status}`
+                    }, {
+                        preset: 'islands#dotIcon',
+                        iconColor: color
+                    });
+                    
+                    placemarks.push(placemark);
+                    map.geoObjects.add(placemark);
+                    
+                    // Если это первая метка, центрируем карту
+                    if (placemarks.length === 1) {
+                        map.setCenter(coords);
+                    }
+                });
+            });
+            
+            // Фильтруем заявки в сайдбаре
+            filterSidebar();
+        }
+        
+        function filterSidebar() {
+            const statusFilter = document.getElementById('status-filter').value;
+            const leadItems = document.querySelectorAll('.lead-item');
+            
+            leadItems.forEach(item => {
+                const status = item.getAttribute('data-status');
+                
+                if (statusFilter === 'all') {
+                    item.style.display = 'block';
+                } else if (statusFilter === 'new_and_in_progress') {
+                    item.style.display = (status === 'новая' || status === 'в работе') ? 'block' : 'none';
+                } else {
+                    item.style.display = status === statusFilter ? 'block' : 'none';
+                }
+            });
+        }
+        
+        function geocodeGrodnoAddress(address, callback) {
+            if (!address || address === 'Адрес не указан') {
+                // Случайные координаты в пределах Гродно и области
+                const grodnoBounds = {
+                    lat: [53.5, 53.9],   // Широта: от юга к северу области
+                    lon: [23.5, 24.2]    // Долгота: от запада к востоку области
+                };
+                
+                const randomLat = grodnoBounds.lat[0] + Math.random() * (grodnoBounds.lat[1] - grodnoBounds.lat[0]);
+                const randomLon = grodnoBounds.lon[0] + Math.random() * (grodnoBounds.lon[1] - grodnoBounds.lon[0]);
+                
+                callback([randomLat, randomLon]);
+                return;
+            }
+            
+            // Добавляем "Гродно" к адресу для более точного поиска в области
+            const grodnoAddress = address.includes('Гродно') ? address : `Гродно, ${address}`;
+            
+            ymaps.geocode(grodnoAddress, {
+                results: 1,
+                boundedBy: [
+                    [53.5, 23.5], // Юго-западная граница (Гродненская область)
+                    [53.9, 24.2]  // Северо-восточная граница (Гродненская область)
+                ]
+            }).then(function (res) {
+                const firstGeoObject = res.geoObjects.get(0);
+                if (firstGeoObject) {
+                    callback(firstGeoObject.geometry.getCoordinates());
+                } else {
+                    // Если не нашли, используем случайные координаты в Гродно
+                    const randomLat = 53.6694 + (Math.random() - 0.5) * 0.1;
+                    const randomLon = 23.8131 + (Math.random() - 0.5) * 0.1;
+                    callback([randomLat, randomLon]);
+                }
+            }).catch(function (error) {
+                console.log('Ошибка геокодирования:', error);
+                // При ошибке - случайные координаты в Гродно
+                const randomLat = 53.6694 + (Math.random() - 0.5) * 0.05;
+                const randomLon = 23.8131 + (Math.random() - 0.5) * 0.05;
+                callback([randomLat, randomLon]);
+            });
+        }
+        
+        function getStatusColor(status) {
+            switch(status) {
+                case 'новая': return '#ffc107';     // Желтый
+                case 'в работе': return '#dc3545';  // Красный
+                case 'выполнена': return '#28a745'; // Зеленый
+                default: return '#667eea';          // Синий по умолчанию
+            }
+        }
+        
+        function refreshMap() {
+            loadLeadsToMap();
+        }
+        
+        // Обработчики для sidebar
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.lead-item')) {
+                const leadItem = e.target.closest('.lead-item');
+                const leadId = parseInt(leadItem.getAttribute('data-lead-id'));
+                
+                // Находим соответствующую метку на карте
+                const lead = leadsData.find(l => l.id === leadId);
+                if (lead) {
+                    geocodeGrodnoAddress(lead.address, (coords) => {
+                        map.setCenter(coords, 15);
+                        
+                        // Открываем балун метки
+                        const placemark = placemarks.find(pm => 
+                            pm.properties.get('balloonContent').includes(lead.name)
+                        );
+                        if (placemark) {
+                            placemark.balloon.open();
+                        }
+                    });
+                    
+                    // Подсвечиваем активный элемент
+                    document.querySelectorAll('.lead-item').forEach(i => i.classList.remove('active'));
+                    leadItem.classList.add('active');
+                }
+            }
+        });
+        
+        // Фильтрация при изменении статуса
+        document.getElementById('status-filter').addEventListener('change', function() {
+            loadLeadsToMap();
+        });
+    </script>
+</body>
+</html>

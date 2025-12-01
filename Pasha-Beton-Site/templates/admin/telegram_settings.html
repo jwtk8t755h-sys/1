@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки Telegram - Админка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #667eea;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border: 1px solid #667eea;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .instruction-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .instruction-step {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: monospace;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .test-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status-active { 
+            background: #4caf50; 
+            color: white; 
+        }
+        
+        .status-inactive { 
+            background: #f44336; 
+            color: white; 
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .flash-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .connection-status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚙️ Настройки Telegram</h1>
+        <div class="user-info">
+            <span>Привет, {{ session.get('admin_username', 'Админ') }}!</span>
+            <a href="{{ url_for('admin_logout') }}" class="logout-btn">Выйти</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <a href="{{ url_for('admin_index') }}" class="back-link">← Назад к дашборду</a>
+            <a href="{{ url_for('admin_leads') }}" class="back-link">📋 К заявкам</a>
+            <a href="{{ url_for('admin_finances') }}" class="back-link">💰 К финансам</a>
+            <a href="{{ url_for('admin_map') }}" class="back-link">🗺️ К карте</a>
+        </div>
+        
+        <div class="instruction-box">
+            <h3>📖 Инструкция по настройке Telegram уведомлений:</h3>
+            
+            <div class="instruction-step">
+                <strong>1. Создайте бота:</strong>
+                <p>Напишите <a href="https://t.me/BotFather" target="_blank">@BotFather</a> в Telegram и создайте нового бота командой <code>/newbot</code></p>
+            </div>
+            
+            <div class="instruction-step">
+                <strong>2. Получите токен:</strong>
+                <p>После создания бота @BotFather пришлет вам токен (выглядит как <code>123456789:ABCdefGHIjklMNOpqrsTUVwxyz</code>)</p>
+            </div>
+            
+            <div class="instruction-step">
+                <strong>3. Узнайте ваш Chat ID:</strong>
+                <p>Напишите любое сообщение боту <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a> и он покажет ваш ID</p>
+            </div>
+            
+            <div class="instruction-step">
+                <strong>4. Начните диалог:</strong>
+                <p>Найдите вашего бота в Telegram и отправьте ему любое сообщение</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>⚙️ Настройки уведомлений</h2>
+            
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash-message {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="bot_token">🔑 Token бота:</label>
+                    <input type="text" id="bot_token" name="bot_token" 
+                           value="{{ settings.bot_token or '' }}" 
+                           placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz">
+                    <small style="color: #666;">Токен, который вы получили от @BotFather</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="chat_id">💬 Chat ID:</label>
+                    <input type="text" id="chat_id" name="chat_id" 
+                           value="{{ settings.chat_id or '' }}" 
+                           placeholder="123456789">
+                    <small style="color: #666;">Ваш ID пользователя в Telegram</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="is_active" value="true" 
+                               {% if settings.is_active %}checked{% endif %}>
+                        Включить уведомления
+                    </label>
+                    <span class="status-indicator {% if settings.is_active %}status-active{% else %}status-inactive{% endif %}">
+                        {{ 'ВКЛЮЧЕНЫ' if settings.is_active else 'ВЫКЛЮЧЕНЫ' }}
+                    </span>
+                </div>
+                
+                <button type="submit" class="btn btn-success">💾 Сохранить настройки</button>
+                
+                {% if settings.bot_token and settings.chat_id %}
+                <button type="button" class="btn test-btn" onclick="testTelegram()">
+                    🔍 Тестовая отправка
+                </button>
+                {% endif %}
+            </form>
+            
+            {% if settings.bot_token and settings.chat_id %}
+            <div id="connection-status" class="connection-status" style="display: none;">
+                <!-- Здесь будет отображаться статус тестирования -->
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function testTelegram() {
+            const statusDiv = document.getElementById('connection-status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'connection-status status-loading';
+            statusDiv.innerHTML = '<p>🔄 Отправка тестового сообщения...</p>';
+            
+            fetch('/admin/telegram/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusDiv.className = 'connection-status status-success';
+                    statusDiv.innerHTML = `
+                        <strong>✅ Успешно!</strong>
+                        <p>Тестовое сообщение отправлено в Telegram</p>
+                        <small>Проверьте ваш чат с ботом</small>
+                    `;
+                } else {
+                    statusDiv.className = 'connection-status status-error';
+                    statusDiv.innerHTML = `
+                        <strong>❌ Ошибка!</strong>
+                        <p>${data.error || 'Не удалось отправить сообщение'}</p>
+                        <small>Проверьте токен и chat ID</small>
+                    `;
+                }
+            })
+            .catch(error => {
+                statusDiv.className = 'connection-status status-error';
+                statusDiv.innerHTML = `
+                    <strong>❌ Ошибка сети!</strong>
+                    <p>Проверьте подключение к интернету</p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

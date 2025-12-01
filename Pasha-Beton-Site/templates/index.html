@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бетонные лестницы на века. Расчет стоимости за 24 часа.</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* ФОН С ЛЕСТНИЦЕЙ */
+        .stair-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.05;
+            background: 
+                linear-gradient(45deg, transparent 45%, #667eea 45%, #667eea 55%, transparent 55%) 0 0/100px 100px,
+                linear-gradient(-45deg, transparent 45%, #667eea 45%, #667eea 55%, transparent 55%) 0 0/100px 100px;
+            animation: stairMove 20s linear infinite;
+        }
+
+        @keyframes stairMove {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 100px 100px, 100px 100px; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ГЕРОЙ СЕКЦИЯ */
+        .hero {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+            border-radius: 0 0 50px 50px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.1);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .cta-btn:hover {
+            background: #ff5252;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.6);
+        }
+
+        /* СЕКЦИИ */
+        section {
+            padding: 80px 0;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            color: #2d3748;
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        /* ФИЧИ */
+        .features {
+            background: #f8fafc;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-item {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            border: 1px solid #f1f3f4;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-item h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .feature-item p {
+            color: #718096;
+            line-height: 1.6;
+        }
+
+        /* ПРОЦЕСС */
+        .process {
+            background: white;
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            position: relative;
+        }
+
+        .process-steps::before {
+            content: '';
+            position: absolute;
+            top: 60px;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .step h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .step p {
+            color: #718096;
+        }
+
+        /* ФОРМА */
+        .form-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 80px 0;
+            border-radius: 50px 50px 0 0;
+        }
+
+        .form-section h2 {
+            color: white;
+        }
+
+        .form-section h2::after {
+            background: white;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        input {
+            width: 100%;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transform: scale(1.02);
+        }
+
+        form button {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        form button:hover {
+            background: #5a6fd8;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero {
+                padding: 60px 0;
+                border-radius: 0 0 30px 30px;
+            }
+            
+            .form-section {
+                border-radius: 30px 30px 0 0;
+            }
+            
+            .process-steps::before {
+                display: none;
+            }
+            
+            section {
+                padding: 50px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Фон с лестницей -->
+    <div class="stair-background"></div>
+
+    <!-- Герой-секция -->
+    <section class="hero">
+        <div class="container">
+            <h1>🏗️ Бетонные лестницы на века</h1>
+            <p class="subtitle">Расчет стоимости за 24 часа</p>
+            <p>От проекта до сдачи под ключ. Бесплатный выезд на замер. Гарантия 5 лет на все работы.</p>
+            <button class="cta-btn" onclick="scrollToForm()">РАССЧИТАТЬ СТОИМОСТЬ</button>
+        </div>
+    </section>
+
+    <!-- Блок УТП -->
+    <section class="features">
+        <div class="container">
+            <h2>Почему выбирают нас</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">📐</div>
+                    <h3>Индивидуальный проект</h3>
+                    <p>Каждая лестница создается по вашим размерам и пожеланиям с учетом особенностей помещения</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🚗</div>
+                    <h3>Бесплатный выезд на замер</h3>
+                    <p>Приедем в удобное для вас время для точных расчетов и консультации</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Гарантия 5 лет</h3>
+                    <p>Даем длительную гарантию на все наши работы и используемые материалы</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⏱️</div>
+                    <h3>Соблюдение сроков</h3>
+                    <p>Строго соблюдаем оговоренные сроки выполнения работ без задержек</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Блок процесса работы -->
+    <section class="process">
+        <div class="container">
+            <h2>Как мы работаем</h2>
+            <div class="process-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Заявка/Звонок</h3>
+                    <p>Оставляете заявку на сайте или звоните нам для консультации</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Выезд и замер</h3>
+                    <p>Бесплатный выезд мастера для точного замера и расчета</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Расчет сметы</h3>
+                    <p>Подготовка детального расчета стоимости в течение 24 часов</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Выполнение работы</h3>
+                    <p>Качественное выполнение всех этапов с соблюдением сроков</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Форма заявки -->
+    <section class="form-section" id="form">
+        <div class="container">
+            <h2>Оставьте заявку</h2>
+            <form action="/submit" method="POST">
+                <input type="text" name="name" placeholder="Ваше имя" required>
+                <input type="tel" name="phone" placeholder="Ваш телефон" required>
+                <input type="text" name="address" placeholder="Адрес объекта (город, улица, дом)" required>
+                <button type="submit">ЖДУ ЗВОНКА 📞</button>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        function scrollToForm() {
+            document.getElementById('form').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // Плавное появление элементов при скролле
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Наблюдаем за всеми элементами с анимацией
+        document.querySelectorAll('.feature-item, .step, form').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

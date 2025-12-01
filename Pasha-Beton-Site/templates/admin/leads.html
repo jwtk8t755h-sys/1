@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление заявками - Админка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #667eea;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .filters {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .table th, .table td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e1e1e1;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s ease;
+            border-left: 6px solid transparent;
+        }
+        
+        /* ЦВЕТА СТАТУСОВ */
+        .table tbody tr.status-новая {
+            border-left: 6px solid #ffc107;
+            background: linear-gradient(90deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 255, 255, 0) 30%);
+        }
+        
+        .table tbody tr.status-в-работе {
+            border-left: 6px solid #dc3545;
+            background: linear-gradient(90deg, rgba(220, 53, 69, 0.1) 0%, rgba(255, 255, 255, 0) 30%);
+        }
+        
+        .table tbody tr.status-выполнена {
+            border-left: 6px solid #28a745;
+            background: linear-gradient(90deg, rgba(40, 167, 69, 0.1) 0%, rgba(255, 255, 255, 0) 30%);
+        }
+        
+        .table tbody tr:hover {
+            background: #f8f9fa !important;
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* БЕЙДЖИ СТАТУСОВ */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: bold;
+            display: inline-block;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .status-new { 
+            background: #ffc107; 
+            color: #000; 
+        }
+        .status-in-progress { 
+            background: #dc3545; 
+            color: white; 
+        }
+        .status-completed { 
+            background: #28a745; 
+            color: white; 
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border: 1px solid #667eea;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .flash-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .delete-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            background: #dc3545;
+            transform: scale(1.05);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .status-select {
+            padding: 5px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 0.8em;
+            min-width: 120px;
+        }
+        
+        .edit-btn {
+            background: #007bff;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+        }
+        
+        .edit-btn:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+        
+        .photo-link {
+            display: inline-block;
+            margin: 2px;
+            padding: 3px 6px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 3px;
+            text-decoration: none;
+            font-size: 0.75em;
+            transition: all 0.3s ease;
+        }
+        
+        .photo-link:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        /* МОДАЛЬНОЕ ОКНО */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+        
+        .modal-content {
+            position: relative;
+            margin: 2% auto;
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+        }
+        
+        #modalPhoto {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+        
+        .close {
+            position: absolute;
+            top: -40px;
+            right: -10px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        
+        .close:hover {
+            color: #ccc;
+        }
+        
+        #photoCaption {
+            color: white;
+            text-align: center;
+            margin-top: 10px;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .table {
+                font-size: 12px;
+            }
+            
+            .table th, .table td {
+                padding: 8px 5px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .status-select {
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Управление заявками</h1>
+        <div class="user-info">
+            <span>Привет, {{ session.get('admin_username', 'Админ') }}!</span>
+            <a href="{{ url_for('admin_logout') }}" class="logout-btn">Выйти</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <a href="{{ url_for('admin_index') }}" class="back-link">← Назад к дашборду</a>
+            <a href="{{ url_for('admin_map') }}" class="back-link">🗺️ К карте заявок</a>
+            <a href="{{ url_for('admin_finances') }}" class="back-link">💰 К финансам</a>
+        </div>
+        
+        <div class="section">
+            <h2>Все заявки ({{ leads|length }})</h2>
+            
+            <!-- ФИЛЬТРЫ -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Фильтр по статусу:</label>
+                    <select id="status-filter">
+                        <option value="all">Все заявки</option>
+                        <option value="new_and_in_progress" selected>Новые и в работе</option>
+                        <option value="новая">Новые</option>
+                        <option value="в работе">В работе</option>
+                        <option value="выполнена">Выполненные</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- СООБЩЕНИЯ -->
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash-message {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+            
+            <!-- ТАБЛИЦА ЗАЯВОК -->
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя</th>
+                            <th>Телефон</th>
+                            <th>Адрес</th>
+                            <th>Статус</th>
+                            <th>Стоимость</th>
+                            <th>Фото</th>
+                            <th>Дата создания</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leads-table-body">
+                        {% for lead in leads %}
+                        <tr class="status-{{ lead.status.replace(' ', '-') }}" data-status="{{ lead.status }}">
+                            <td><strong>#{{ lead.id }}</strong></td>
+                            <td>{{ lead.name }}</td>
+                            <td>
+                                <a href="tel:{{ lead.phone }}" style="color: #007bff; text-decoration: none;">
+                                    {{ lead.phone }}
+                                </a>
+                            </td>
+                            <td title="{{ lead.address }}">
+                                {{ lead.address[:30] }}{% if lead.address|length > 30 %}...{% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ lead.status.replace(' ', '-') }}">
+                                    {{ lead.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if lead.cost %}
+                                <strong style="color: #28a745;">{{ "%.2f"|format(lead.cost) }} ₽</strong>
+                                {% else %}
+                                <span style="color: #6c757d;">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 2px; flex-wrap: wrap;">
+                                    {% if lead.photo_before %}
+                                        <a href="#" onclick="showPhoto('{{ url_for('static', filename='uploads/' + lead.photo_before) }}')" 
+                                           class="photo-link" title="Посмотреть фото 'до'">
+                                            📷 До
+                                        </a>
+                                    {% endif %}
+                                    {% if lead.photo_after %}
+                                        <a href="#" onclick="showPhoto('{{ url_for('static', filename='uploads/' + lead.photo_after) }}')" 
+                                           class="photo-link" title="Посмотреть фото 'после'">
+                                            📷 После
+                                        </a>
+                                    {% endif %}
+                                    {% if not lead.photo_before and not lead.photo_after %}
+                                        <span style="color: #6c757d; font-size: 0.8em;">—</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>{{ lead.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{{ url_for('edit_lead', lead_id=lead.id) }}" class="edit-btn" title="Редактировать">
+                                        ✏️ Редакт.
+                                    </a>
+                                    <form action="{{ url_for('update_lead_status', lead_id=lead.id) }}" method="POST" style="display: inline;">
+                                        <select name="status" class="status-select" onchange="this.form.submit()">
+                                            <option value="новая" {% if lead.status == 'новая' %}selected{% endif %}>Новая</option>
+                                            <option value="в работе" {% if lead.status == 'в работе' %}selected{% endif %}>В работе</option>
+                                            <option value="выполнена" {% if lead.status == 'выполнена' %}selected{% endif %}>Выполнена</option>
+                                        </select>
+                                    </form>
+                                    <form action="{{ url_for('delete_lead', lead_id=lead.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="delete-btn" onclick="return confirm('Удалить заявку от {{ lead.name }}?')" title="Удалить заявку">
+                                            🗑️ Удалить
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 20px; color: #6c757d;">
+                                📭 Нет заявок
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ ФОТО -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <img id="modalPhoto" src="" alt="Просмотр фото">
+            <div id="photoCaption"></div>
+        </div>
+    </div>
+
+    <script>
+        // ФИЛЬТРАЦИЯ ТАБЛИЦЫ
+        document.getElementById('status-filter').addEventListener('change', function() {
+            const filter = this.value;
+            const rows = document.querySelectorAll('#leads-table-body tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                let show = false;
+                
+                if (filter === 'all') {
+                    show = true;
+                } else if (filter === 'new_and_in_progress') {
+                    show = (status === 'новая' || status === 'в работе');
+                } else {
+                    show = (status === filter);
+                }
+                
+                row.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
+            });
+            
+            // Обновляем заголовок с количеством
+            const title = document.querySelector('.section h2');
+            const totalCount = {{ leads|length }};
+            if (filter === 'all') {
+                title.textContent = `Все заявки (${totalCount})`;
+            } else {
+                title.textContent = `Все заявки (${visibleCount} из ${totalCount})`;
+            }
+        });
+        
+        // ПРИМЕНЯЕМ ФИЛЬТР ПРИ ЗАГРУЗКЕ
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('status-filter').dispatchEvent(new Event('change'));
+        });
+        
+        // ФУНКЦИЯ ПОКАЗА ФОТО
+        function showPhoto(photoUrl) {
+            const modal = document.getElementById('photoModal');
+            const modalImg = document.getElementById('modalPhoto');
+            const caption = document.getElementById('photoCaption');
+            
+            modal.style.display = 'block';
+            modalImg.src = photoUrl;
+            caption.innerHTML = photoUrl.split('/').pop();
+            
+            // ЗАКРЫТИЕ МОДАЛЬНОГО ОКНА
+            const span = document.getElementsByClassName('close')[0];
+            span.onclick = function() {
+                modal.style.display = 'none';
+            }
+            
+            // ЗАКРЫТИЕ ПРИ КЛИКЕ ВНЕ ИЗОБРАЖЕНИЯ
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+            
+            // ЗАКРЫТИЕ ПО ESC
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

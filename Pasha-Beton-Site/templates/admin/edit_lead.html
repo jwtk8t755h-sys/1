@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование заявки - Админка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+        }
+        
+        .container {
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border: 1px solid #667eea;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .photo-preview {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .photo-container {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .photo-container img {
+            width: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            border: 2px solid #e1e1e1;
+            object-fit: cover;
+        }
+        
+        .cost-input {
+            max-width: 200px;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .info-box p {
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-box p:last-child {
+            border-bottom: none;
+        }
+        
+        .file-input {
+            padding: 10px;
+            background: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+        
+        .financial-note {
+            background: #e7f3ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #0066cc;
+            border-left: 3px solid #007bff;
+        }
+        
+        .photo-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn-view {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-view:hover {
+            background: #138496;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status-новая { background: #ffc107; color: #000; }
+        .status-в-работе { background: #dc3545; color: white; }
+        .status-выполнена { background: #28a745; color: white; }
+        
+        /* МОДАЛЬНОЕ ОКНО */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+        
+        .modal-content {
+            position: relative;
+            margin: 2% auto;
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+        }
+        
+        #modalPhoto {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+        
+        .close {
+            position: absolute;
+            top: -40px;
+            right: -10px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        
+        .close:hover {
+            color: #ccc;
+        }
+        
+        #photoCaption {
+            color: white;
+            text-align: center;
+            margin-top: 10px;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .photo-preview {
+                flex-direction: column;
+            }
+            
+            .photo-container {
+                min-width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-right: 0;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✏️ Редактирование заявки #{{ lead.id }}</h1>
+        <div>
+            <a href="{{ url_for('admin_leads') }}" class="btn btn-secondary">← Назад к заявкам</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="section">
+            <!-- ИНФОРМАЦИЯ О КЛИЕНТЕ -->
+            <div class="info-box">
+                <h3>📋 Информация о клиенте</h3>
+                <p><strong>👤 Имя:</strong> {{ lead.name }}</p>
+                <p><strong>📞 Телефон:</strong> 
+                    <a href="tel:{{ lead.phone }}" style="color: #007bff; text-decoration: none;">
+                        {{ lead.phone }}
+                    </a>
+                </p>
+                <p><strong>📍 Адрес:</strong> {{ lead.address or 'Не указан' }}</p>
+                <p><strong>📅 Дата заявки:</strong> {{ lead.created_at.strftime('%d.%m.%Y в %H:%M') }}</p>
+                {% if lead.completed_at %}
+                <p><strong>✅ Завершена:</strong> {{ lead.completed_at.strftime('%d.%m.%Y в %H:%M') }}</p>
+                {% endif %}
+                <p><strong>🎯 Статус:</strong> 
+                    {{ lead.status }}
+                    <span class="status-indicator status-{{ lead.status.replace(' ', '-') }}">
+                        {{ lead.status }}
+                    </span>
+                </p>
+            </div>
+            
+            <!-- ФОРМА РЕДАКТИРОВАНИЯ -->
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="status">🎯 Статус заявки:</label>
+                    <select id="status" name="status" required>
+                        <option value="новая" {% if lead.status == 'новая' %}selected{% endif %}>🆕 Новая</option>
+                        <option value="в работе" {% if lead.status == 'в работе' %}selected{% endif %}>🔴 В работе</option>
+                        <option value="выполнена" {% if lead.status == 'выполнена' %}selected{% endif %}>✅ Выполнена</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cost">💰 Стоимость работы (руб.):</label>
+                    <input type="number" step="0.01" id="cost" name="cost" 
+                           value="{{ "%.2f"|format(lead.cost) if lead.cost else '' }}" class="cost-input" 
+                           placeholder="0.00" min="0">
+                    <div class="financial-note">
+                        💡 При указании стоимости автоматически создается финансовая запись в разделе "Доходы"
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="work_description">📝 Описание выполненной работы:</label>
+                    <textarea id="work_description" name="work_description" rows="5" 
+                              placeholder="Опишите выполненную работу, использованные материалы, особенности...">{{ lead.work_description or '' }}</textarea>
+                </div>
+                
+                <!-- ФОТО ДО -->
+                <div class="form-group">
+                    <label for="photo_before">📸 Фото "ДО" работы:</label>
+                    <input type="file" id="photo_before" name="photo_before" 
+                           accept="image/*" class="file-input">
+                    
+                    {% if lead.photo_before %}
+                    <div class="photo-preview">
+                        <div class="photo-container">
+                            <p><strong>Текущее фото "ДО":</strong></p>
+                            <img src="{{ url_for('static', filename='uploads/' + lead.photo_before) }}" 
+                                 alt="Фото до выполнения работы" 
+                                 onerror="this.style.display='none'">
+                            <div class="photo-actions">
+                                <a href="#" onclick="showPhoto('{{ url_for('static', filename='uploads/' + lead.photo_before) }}')" 
+                                   class="btn-view">👁️ Посмотреть</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- ФОТО ПОСЛЕ -->
+                <div class="form-group">
+                    <label for="photo_after">📸 Фото "ПОСЛЕ" работы:</label>
+                    <input type="file" id="photo_after" name="photo_after" 
+                           accept="image/*" class="file-input">
+                    
+                    {% if lead.photo_after %}
+                    <div class="photo-preview">
+                        <div class="photo-container">
+                            <p><strong>Текущее фото "ПОСЛЕ":</strong></p>
+                            <img src="{{ url_for('static', filename='uploads/' + lead.photo_after) }}" 
+                                 alt="Фото после выполнения работы"
+                                 onerror="this.style.display='none'">
+                            <div class="photo-actions">
+                                <a href="#" onclick="showPhoto('{{ url_for('static', filename='uploads/' + lead.photo_after) }}')" 
+                                   class="btn-view">👁️ Посмотреть</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- КНОПКИ ДЕЙСТВИЙ -->
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 30px;">
+                    <button type="submit" class="btn btn-success">💾 Сохранить изменения</button>
+                    <a href="{{ url_for('admin_leads') }}" class="btn btn-secondary">❌ Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ ПРОСМОТРА ФОТО -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <img id="modalPhoto" src="" alt="Просмотр фото">
+            <div id="photoCaption"></div>
+        </div>
+    </div>
+
+    <script>
+        // ПРЕВЬЮ ВЫБРАННЫХ ФАЙЛОВ
+        document.getElementById('photo_before').addEventListener('change', function(e) {
+            previewImage(this, 'ДО');
+        });
+        
+        document.getElementById('photo_after').addEventListener('change', function(e) {
+            previewImage(this, 'ПОСЛЕ');
+        });
+        
+        function previewImage(input, type) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // Создаем или обновляем превью
+                    let previewContainer = input.nextElementSibling;
+                    if (!previewContainer || !previewContainer.classList.contains('photo-preview')) {
+                        previewContainer = document.createElement('div');
+                        previewContainer.className = 'photo-preview';
+                        input.after(previewContainer);
+                    }
+                    
+                    previewContainer.innerHTML = `
+                        <div class="photo-container">
+                            <p><strong>Новое фото "${type}":</strong></p>
+                            <img src="${e.target.result}" alt="Превью нового фото" 
+                                 style="width: 100%; max-height: 200px; border-radius: 8px; border: 2px solid #28a745;">
+                            <div class="photo-actions">
+                                <span style="color: #28a745; font-size: 0.9em;">✅ Новое фото готово к загрузке</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // ФУНКЦИЯ ПОКАЗА ФОТО В МОДАЛЬНОМ ОКНЕ
+        function showPhoto(photoUrl) {
+            const modal = document.getElementById('photoModal');
+            const modalImg = document.getElementById('modalPhoto');
+            const caption = document.getElementById('photoCaption');
+            
+            modal.style.display = 'block';
+            modalImg.src = photoUrl;
+            caption.innerHTML = photoUrl.split('/').pop();
+            
+            // ЗАКРЫТИЕ МОДАЛЬНОГО ОКНА
+            const span = document.getElementsByClassName('close')[0];
+            span.onclick = function() {
+                modal.style.display = 'none';
+            }
+            
+            // ЗАКРЫТИЕ ПРИ КЛИКЕ ВНЕ ИЗОБРАЖЕНИЯ
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+            
+            // ЗАКРЫТИЕ ПО ESC
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+        
+        // АВТОФОКУС НА ПЕРВОМ ПОЛЕ
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('status').focus();
+        });
+    </script>
+</body>
+</html>
